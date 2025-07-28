@@ -92,7 +92,7 @@ def main():
         st.markdown("<div id='bottom-bar'>", unsafe_allow_html=True)
         col1, col2 = st.columns([1,6])
 
-        if col1.button("🎤", key="mic"):
+        if col1.button("Record", key="mic"):
             st.session_state["recording"] = True
             wave = col1.empty()
             wave.markdown(WAVE_HTML, unsafe_allow_html=True)

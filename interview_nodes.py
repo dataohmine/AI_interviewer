@@ -51,11 +51,11 @@ def ask_question_node(state):
         question = state['questions'][idx]
         q = question['text']
 
-        print(f"📝 Asking question {idx + 1}/{len(state['questions'])}: {question.get('id', 'unknown')}")
+        print(f"Asking question {idx + 1}/{len(state['questions'])}: {question.get('id', 'unknown')}")
 
         # Check if this is the outro question - just play it and move on
         if question.get('id') == 'outro':
-            print("🎯 Playing outro message...")
+            print("Playing outro message...")
             audio_bytes = audio.speak(q)
             audio.play_audio(audio_bytes)
             
@@ -79,7 +79,7 @@ def ask_question_node(state):
             if not ask_and_record_audio(state, q, question):
                 retry_count += 1
                 if retry_count > max_retries:
-                    print(f"⚠️  No audio detected after {max_retries} attempts, skipping question")
+                    print(f"  No audio detected after {max_retries} attempts, skipping question")
                     # Store empty response if max retries reached
                     store_transcription(state, "[No audio detected]", question)
                     break
@@ -87,17 +87,17 @@ def ask_question_node(state):
 
             # Wait for a valid transcription response
             transcription = wait_for_transcription(state, question)
-            print(f"🎤 Transcribed: '{transcription}'")
+            print(f"� Transcribed: '{transcription}'")
 
             # Handle responses and clarify if needed
             if not validate_response(state, transcription, question):
                 retry_count += 1
                 if retry_count > max_retries:
-                    print(f"⚠️  Max retries reached, accepting response: '{transcription}'")
+                    print(f"  Max retries reached, accepting response: '{transcription}'")
                     # Store whatever transcription we got if max retries reached
                     store_transcription(state, transcription, question)
                     break
-                print(f"🔄 Retry {retry_count}/{max_retries}")
+                print(f"� Retry {retry_count}/{max_retries}")
                 continue
             
             # Store valid transcriptions
@@ -110,11 +110,11 @@ def ask_question_node(state):
         
         # Move to the next question ONLY ONCE per question
         state['current_q_idx'] += 1
-        print(f"➡️  Moving to question {state['current_q_idx'] + 1}")
+        print(f"  Moving to question {state['current_q_idx'] + 1}")
     
     # Mark questions as complete when we've asked all questions
     state['questions_complete'] = True
-    print("✅ All questions completed!")
+    print(" All questions completed!")
     
     # Once all questions are asked, end the interview
     state = end_interview_node(state)
@@ -137,7 +137,7 @@ def handle_special_logic(state, transcription, question):
 def validate_response(state, transcription, question):
     # If the transcription is empty or contains system prompts (like "Use complete sentences")
     if not transcription or "use complete sentences" in transcription.lower():
-        print(f"❌ No valid response detected. Can you please clarify or repeat your answer?")
+        print(f" No valid response detected. Can you please clarify or repeat your answer?")
         audio_bytes = audio.speak("Can you please clarify or repeat your answer?")
         audio.play_audio(audio_bytes)
         return False
@@ -147,7 +147,7 @@ def validate_response(state, transcription, question):
     transcription_clean = transcription.strip().lower()
 
     if any(misheard in transcription_clean for misheard in misheard_responses):
-        print(f"❌ Misunderstanding detected. Please provide a proper response.")
+        print(f" Misunderstanding detected. Please provide a proper response.")
         audio_bytes = audio.speak("I believe you said 'thank you' or something similar. Could you please provide a response?")
         audio.play_audio(audio_bytes)
         return False
@@ -158,13 +158,13 @@ def validate_response(state, transcription, question):
     # Special handling for role questions like CEO, CFO, etc.
     if "role" in question_id:
         if is_likely_executive_role(transcription_clean):
-            print(f"✅ Executive role detected: {transcription}")
+            print(f" Executive role detected: {transcription}")
             return True
         elif len(transcription_clean) >= 1:
-            print(f"✅ Role response accepted: {transcription}")
+            print(f" Role response accepted: {transcription}")
             return True
         else:
-            print("❌ No role detected")
+            print(" No role detected")
             audio_bytes = audio.speak("Could you please state your role or title?")
             audio.play_audio(audio_bytes)
             return False
@@ -172,16 +172,16 @@ def validate_response(state, transcription, question):
     # Handle name question to ensure it's a valid name (not too short)
     if question_id == "name":
         if len(transcription_clean) < 2:
-            print("❌ Name too short")
+            print(" Name too short")
             audio_bytes = audio.speak("Could you please state your name clearly?")
             audio.play_audio(audio_bytes)
             return False
-        print(f"✅ Name accepted: {transcription}")
+        print(f" Name accepted: {transcription}")
         return True
 
     # For general questions, if the response is too short or seems incomplete, ask for clarification
     if len(transcription_clean) <= 2:
-        print(f"❌ Transcription too short (possible audio issue): '{transcription}'")
+        print(f" Transcription too short (possible audio issue): '{transcription}'")
         audio_bytes = audio.speak("I only caught a few words. Could you please repeat your full answer?")
         audio.play_audio(audio_bytes)
         return False
@@ -233,26 +233,26 @@ def ask_and_record_audio(state, question_text, question):
     state['audio_segments'].append(AudioSegment.from_file(BytesIO(audio_bytes), format="mp3"))
     
     # Give a moment for the user to start speaking
-    print("🎤 Recording... (speak now)")
+    print("� Recording... (speak now)
     
     # Record the response with extended timeout
     path = audio.record_until_silence()
     if not path:  # If no audio detected, return False but don't repeat immediately
-        print("❌ No audio recorded")
+        print(" No audio recorded")
         return False
     
     # Check if audio file exists and has reasonable size
     try:
         import os
         file_size = os.path.getsize(path)
-        print(f"📁 Audio file size: {file_size} bytes")
+        print(f"� Audio file size: {file_size} bytes")
         if file_size < 1000:  # Less than 1KB suggests very short recording
-            print("⚠️  Audio file seems very short - this might cause transcription issues")
+            print("  Audio file seems very short - this might cause transcription issues")
     except:
         pass
     
     state['last_audio_path'] = path
-    print("✅ Audio recorded successfully")
+    print(" Audio recorded successfully")
     return True
 
 def wait_for_transcription(state, question):
@@ -274,13 +274,13 @@ def wait_for_transcription(state, question):
         # Apply post-processing to fix common business acronym errors
         transcription = fix_business_acronyms(raw_transcription, question)
         
-        print(f"📝 Raw transcription: '{raw_transcription}'")
+        print(f"� Raw transcription: '{raw_transcription}'")
         if raw_transcription != transcription:
-            print(f"🔧 Fixed transcription: '{transcription}'")
+            print(f"� Fixed transcription: '{transcription}'")
         
         # Check if transcription seems unusually short
         if len(transcription) < 5:
-            print(f"⚠️  Warning: Transcription seems very short: '{transcription}'")
+            print(f"  Warning: Transcription seems very short: '{transcription}'")
         
         # Clean up the audio file after transcription
         try:
@@ -289,7 +289,7 @@ def wait_for_transcription(state, question):
             pass
             
     except Exception as e:
-        print(f"❌ Transcription error: {e}")
+        print(f" Transcription error: {e}")
         # Don't fail silently - return what we can
         transcription = ""
     return transcription
@@ -385,7 +385,7 @@ def fix_business_acronyms(text, question):
             text_lower = fixed_text.lower().strip()
             if text_lower in ['io', 'co', 'seo', 'o', 'eo', 'cio', 'seeo']:
                 fixed_text = 'CEO'
-                print(f"🔧 Aggressive CEO fix applied: '{text}' -> 'CEO'")
+                print(f"� Aggressive CEO fix applied: '{text}' -> 'CEO'")
     
     return fixed_text
 
@@ -466,14 +466,14 @@ def save_session_node(state):
                 full_audio += segment
             audio_path = out_dir / f"{first_name}_{last_name}_{ts}_audio.mp3"
             full_audio.export(str(audio_path), format="mp3")
-            print(f"✅ Audio saved: {audio_path}")
+            print(f" Audio saved: {audio_path}")
         except Exception as e:
-            print(f"❌ Audio export error: {e}")
+            print(f" Audio export error: {e}")
     
     # Print completion message
-    print(f"✅ Interview completed for {first_name} {last_name}")
-    print(f"📁 Files saved in: {out_dir}")
-    print(f"📄 JSON file: {json_path}")
+    print(f" Interview completed for {first_name} {last_name}")
+    print(f"� Files saved in: {out_dir}")
+    print(f"� JSON file: {json_path}")
     
     # Mark session as complete
     state['session_complete'] = True
@@ -481,7 +481,7 @@ def save_session_node(state):
     return state
 
 def summary_node(state):
-    print("📋 Generating summary...")
+    print("� Generating summary...")
     
     # If there are no transcriptions, create a default message
     if not state["transcript"]:
@@ -508,10 +508,10 @@ def summary_node(state):
         unclear = detect_unclear_responses(state["transcript"])
         if unclear:
             summary += "\n\n**Clarifications Needed:**\n" + "\n".join(f"- {q}" for q in unclear)
-        print("✅ Summary generated successfully")
+        print(" Summary generated successfully")
     except Exception as e:
         summary = f"Summary generation failed: {e}"
-        print(f"❌ Summary generation failed: {e}")
+        print(f" Summary generation failed: {e}")
 
     # Save the summary to the session
     state["session"][state["stage"]] = {
@@ -526,19 +526,19 @@ def route_after_question(state):
     total_questions = len(state.get('questions', []))
     questions_complete = state.get('questions_complete', False)
     
-    print(f"🔀 Routing: questions_complete={questions_complete}, current_idx={current_idx}, total={total_questions}")
+    print(f"� Routing: questions_complete={questions_complete}, current_idx={current_idx}, total={total_questions}")
     
     # Check if all questions have been asked
     if questions_complete or current_idx >= total_questions:
-        print("➡️  Routing to summary")
+        print("  Routing to summary")
         return "summarize"
     else:
-        print("➡️  Routing to ask_question")
+        print("  Routing to ask_question")
         return "ask_question"
 
 def route_after_summary(state):
     """Route to save session after summary is complete."""
-    print("➡️  Routing to save_session")
+    print("  Routing to save_session")
     return "save_session"
 
 def end_interview_node(state):
@@ -553,5 +553,5 @@ def end_interview_node(state):
     
     # Mark the interview as ended
     state['interview_ended'] = True
-    print("🎯 Interview session ended successfully!")
+    print("� Interview session ended successfully!")
     return state

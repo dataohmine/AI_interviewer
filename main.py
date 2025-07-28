@@ -38,7 +38,7 @@ if __name__ == "__main__":
     checkpoint_path = checkpoint_dir / f"checkpoint_session.json"
     
     if checkpoint_path.exists():
-        print("🔄 Resuming from existing checkpoint...")
+        print("Resuming from existing checkpoint...")
         session = load_existing_session(checkpoint_path)
     else:
         session = create_new_session()
@@ -46,36 +46,36 @@ if __name__ == "__main__":
     try:
         for role, stage in ALL_STAGES:
             if session.get(stage):
-                print(f"⏩ Skipping completed stage: {stage}")
+                print(f"Skipping completed stage: {stage}")
                 continue
 
-            print(f"\n🟦 Starting interview session for {role}")
+            print(f"\nStarting interview session for {role}")
 
             try:
                 session = run_stage(role=role, stage=stage, session=session)
                 save_checkpoint(session, checkpoint_path)
-                print(f"✅ Interview completed successfully")
+                print(f"Interview completed successfully")
                 
             except Exception as stage_error:
-                print(f"❌ Error during interview: {stage_error}")
-                print("💾 Progress saved. You can resume later.")
+                print(f"Error during interview: {stage_error}")
+                print("Progress saved. You can resume later.")
                 raise  # Re-raise to exit the loop
         
-        print("\n🎉 Interview session completed successfully.")
+        print("\nInterview session completed successfully.")
         
         # Clean up checkpoint file on successful completion
         if checkpoint_path.exists():
             checkpoint_path.unlink()
-            print("🧹 Checkpoint file cleaned up.")
+            print("Checkpoint file cleaned up.")
             
     except Exception as e:
-        print(f"❌ Error occurred: {e}")
-        print("💾 Progress saved. You can resume later.")
-        print(f"📍 Checkpoint saved at: {checkpoint_path}")
+        print(f"Error occurred: {e}")
+        print("Progress saved. You can resume later.")
+        print(f"Checkpoint saved at: {checkpoint_path}")
         
         # Provide debugging info
         if "recursion limit" in str(e).lower():
-            print("\n🔧 Recursion limit reached. This usually means:")
+            print("\nRecursion limit reached. This usually means:")
             print("   • Your workflow has no END state transitions")
             print("   • Nodes are creating infinite loops")
             print("   • Missing stop conditions in your graph")
